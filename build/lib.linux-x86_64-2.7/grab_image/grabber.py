@@ -8,7 +8,6 @@ import zipfile
 import StringIO
 import ImageEnhance
 import ImageFilter
-import ImageOps
 
 # Authenticate earth engine
 utils.geeAuth()
@@ -18,10 +17,10 @@ def sharpenImage(img, enhance_factor = 1.7):
     # contrast given by the `enhance_factor`, such that 1.7 gives an
     # image with 70% more contrast
     filtered = img.filter(ImageFilter.DETAIL)
-    contrast = ImageOps.autocontrast(filtered)
-    return contrast
+    enhance_instance = ImageEnhance.Contrast(filtered)
+    return enhance_instance.enhance(enhance_factor)
 
-def grabImage(lon, lat, year, w = 8000):
+def grabImage(lon, lat, year, w = 4000):
     # Note that we cannot do pan-sharpening on pre-composited images,
     # since they don't have Band 8, which Landsat ETM+ does have.
     b = utils.createBox(lon, lat, w = w)
