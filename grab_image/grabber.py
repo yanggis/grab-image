@@ -2,6 +2,7 @@ import Image
 import numpy as np
 import utils
 import ee
+import re
 import os
 import requests
 import zipfile
@@ -62,3 +63,25 @@ def grabImage(lon, lat, year, w = 8000):
     url = utils.upload(png_name)
     os.remove(png_name)
     return url
+
+def grabThumbs(lon, lat, year, w = 8000):
+    # Grab landsat thumbnail with all visual parameters already baked
+    # in instead of manipulating the image in python
+    b = utils.createBox(lon, lat, w = w)
+    poly = utils.formatPolygon(b)
+    composite = ee.Image('L7_TOA_1YEAR/%s' % year).select('30', '20', '10')
+
+    visparams = {'bands': ['30', '20', '10'], 'gain':  [2, 2, 1.7]} 
+    visual_image = composite.visualize(**visparams)
+
+    params = {'scale':30, 'crs':'EPSG:4326', 'region':str(b[:-1])}
+    
+    ee_url = visual_image.getThumbUrl(params)
+    req = utils.download(ee_url)
+    
+    s = re.search('thumbid=(.*)&token=', ee_url)
+    thumbid = s.group(1)
+
+    aws_url = utils.upload("thumb", "%s.png" % thumbid)
+    os.remove("thumb")
+    return aws_url

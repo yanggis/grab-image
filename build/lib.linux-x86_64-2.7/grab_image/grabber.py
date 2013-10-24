@@ -2,12 +2,14 @@ import Image
 import numpy as np
 import utils
 import ee
+import re
 import os
 import requests
 import zipfile
 import StringIO
 import ImageEnhance
 import ImageFilter
+import ImageOps
 
 # Authenticate earth engine
 utils.geeAuth()
@@ -17,10 +19,10 @@ def sharpenImage(img, enhance_factor = 1.7):
     # contrast given by the `enhance_factor`, such that 1.7 gives an
     # image with 70% more contrast
     filtered = img.filter(ImageFilter.DETAIL)
-    enhance_instance = ImageEnhance.Contrast(filtered)
-    return enhance_instance.enhance(enhance_factor)
+    contrast = ImageOps.autocontrast(filtered)
+    return contrast
 
-def grabImage(lon, lat, year, w = 4000):
+def grabImage(lon, lat, year, w = 8000):
     # Note that we cannot do pan-sharpening on pre-composited images,
     # since they don't have Band 8, which Landsat ETM+ does have.
     b = utils.createBox(lon, lat, w = w)
@@ -61,3 +63,25 @@ def grabImage(lon, lat, year, w = 4000):
     url = utils.upload(png_name)
     os.remove(png_name)
     return url
+
+def grabThumbs(lon, lat, year, w = 8000):
+    # Grab landsat thumbnail with all visual parameters already baked
+    # in instead of manipulating the image in python
+    b = utils.createBox(lon, lat, w = w)
+    poly = utils.formatPolygon(b)
+    composite = ee.Image('L7_TOA_1YEAR/%s' % year).select('30', '20', '10')
+
+    visparams = {'bands': ['30', '20', '10'], 'gain':  [2, 2, 1.7]} 
+    visual_image = composite.visualize(**visparams)
+
+    params = {'scale':30, 'crs':'EPSG:4326', 'region':str(b[:-1])}
+    
+    ee_url = visual_image.getThumbUrl(params)
+    req = utils.download(ee_url)
+    
+    s = re.search('thumbid=(.*)&token=', ee_url)
+    thumbid = s.group(1)
+
+    aws_url = utils.upload("thumb", "%s.png" % thumbid)
+    os.remove("thumb")
+    return aws_url
