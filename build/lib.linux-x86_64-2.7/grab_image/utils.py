@@ -59,13 +59,13 @@ def createBox(lon, lat, w = 1000, ccw = True):
     b = box(lon - deg, lat - deg, lon + deg, lat + deg, ccw)
     return list(map(list, b.exterior.coords))
 
-def upload(filename, destination_name, bucket_name='landsatpostage'):
+def upload(filename, bucket_name='landsatpostage'):
     # Uploads the specified file to to a specified bucket
     conn = boto.connect_s3(os.environ['AWS_KEY'], os.environ['AWS_ID'])
     bucket = conn.create_bucket(bucket_name)
-    key = bucket.new_key(key_name=destination_name)
+    key = bucket.new_key(key_name=filename)
     key.set_contents_from_filename(filename)
-    bucket.set_acl('public-read', destination_name)
+    bucket.set_acl('public-read', filename)
     url = key.generate_url(expires_in=0, query_auth=False, force_http=True)
     return url
 
@@ -89,9 +89,3 @@ def download(url, fileName=None):
             shutil.copyfileobj(r,f)
     finally:
         r.close()
-
-import re
-
-s = 'asdf=5;iwantthis123jasd'
-result = re.search('asdf=5;(.*)123jasd', s)
-print result.group(1)
