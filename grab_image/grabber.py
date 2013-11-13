@@ -81,11 +81,16 @@ def grabThumbs(lon, lat, x, y, year, w = 8000):
     
     s = re.search('thumbid=(.*)&token=', ee_url)
     thumbid = s.group(1)
+<<<<<<< HEAD
     
     filename = "%s.png" % thumbid
     Image.open("thumb").save(filename)
     destination_path = "validation/%s/%s/%s.png" % (x, y, year)
     aws_url = utils.upload(filename, destination_path)
+=======
+
+    aws_url = utils.upload("thumb", "%s.jpg" % thumbid)
+>>>>>>> 137d7d0316a58f7087cd786c32f2aab2eb56495e
     
     os.remove("thumb")
     os.remove(filename)
