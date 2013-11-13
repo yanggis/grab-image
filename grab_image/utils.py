@@ -59,13 +59,13 @@ def createBox(lon, lat, w = 1000, ccw = True):
     b = box(lon - deg, lat - deg, lon + deg, lat + deg, ccw)
     return list(map(list, b.exterior.coords))
 
-def upload(filename, bucket_name='landsatpostage'):
+def upload(filename, dest_file, bucket_name='landsatpostage'):
     # Uploads the specified file to to a specified bucket
     conn = boto.connect_s3(os.environ['AWS_KEY'], os.environ['AWS_ID'])
     bucket = conn.create_bucket(bucket_name)
-    key = bucket.new_key(key_name=filename)
+    key = bucket.new_key(key_name=dest_file)
     key.set_contents_from_filename(filename)
-    bucket.set_acl('public-read', filename)
+    bucket.set_acl('public-read', dest_file)
     url = key.generate_url(expires_in=0, query_auth=False, force_http=True)
     return url
 

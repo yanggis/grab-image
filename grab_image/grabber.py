@@ -64,7 +64,7 @@ def grabImage(lon, lat, year, w = 8000):
     os.remove(png_name)
     return url
 
-def grabThumbs(lon, lat, year, w = 8000):
+def grabThumbs(lon, lat, x, y, year, w = 8000):
     # Grab landsat thumbnail with all visual parameters already baked
     # in instead of manipulating the image in python
     b = utils.createBox(lon, lat, w = w)
@@ -84,7 +84,8 @@ def grabThumbs(lon, lat, year, w = 8000):
     
     filename = "%s.png" % thumbid
     Image.open("thumb").save(filename)
-    aws_url = utils.upload(filename)
+    destination_path = "validation/%s/%s/%s.png" % (x, y, year)
+    aws_url = utils.upload(filename, destination_path)
     
     os.remove("thumb")
     os.remove(filename)
