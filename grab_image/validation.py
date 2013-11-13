@@ -77,7 +77,6 @@ def updateIndex(new_items):
     os.remove(json_file)
     return d
 
-
 def processPts(n, eco = 40158):
     # Process the landsat image stack for `n` alerts in the supplied
     # ecoregion; update the index file with the list of alerts that
